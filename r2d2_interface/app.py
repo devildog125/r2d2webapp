@@ -8,9 +8,14 @@
 #############################################
 
 from flask import Flask, request, session, redirect, url_for, jsonify, render_template
+from adafruit_motorkit import MotorKit
+from adafruit_servokit import ServoKit
 import os
 import pygame		# for sound
 import subprocess 	# for shell commands
+import board
+import time
+
 
 app = Flask(__name__)
 
@@ -19,6 +24,9 @@ app = Flask(__name__)
 soundFolder = "/home/pi/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 ##########################################
 
+# Static Motor and Servo Variables
+servokit = ServoKit(channels=8)
+motorkit = MotorKit()
 
 # Start sound mixer
 pygame.mixer.init()
@@ -38,8 +46,6 @@ batteryLevel = -999
 #
 @app.route('/')
 def index():
-    # if session.get('active') != True:
-        # return redirect(url_for('login'))
 
     # Get list of audio files
     files = []
@@ -84,14 +90,20 @@ def login():
 #
 @app.route('/motor', methods=['POST'])
 def motor():
-
+    
     stickX =  request.form.get('stickX')
     stickY =  request.form.get('stickY')
-
     if stickX is not None and stickY is not None:
-        xVal = int(float(stickX)*100)
-        yVal = int(float(stickY)*100)
-        print("Motors:", xVal, ",", yVal)
+        leftMotorFloat = float(stickX)
+        rightMotorFloat = float(stickY)
+        leftMotorThrottle = "{:.2f}".format(leftMotorFloat)
+        rightMotorThrottle = "{:.2f}".format(rightMotorFloat)
+        print("Motors:", leftMotorFloat, ",", rightMotorThrottle)
+
+        if leftMotorFloat > 0.04 and rightMotorFloat > 0.0:
+            motorkit.motor1.throttle = rightMotorFloat
+            #  motorkit.motor2.throttle = rightMotorFloat
+
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
     else:
@@ -104,7 +116,7 @@ def motor():
 #
 @app.route('/settings', methods=['POST'])
 def settings():
-
+    
     thing = request.form.get('type');
     value = request.form.get('value');
 
@@ -142,8 +154,14 @@ def settings():
             return jsonify({'status': 'OK','msg': 'Raspberry Pi is restarting'})
 
         # Shut down the Raspberry Pi
+        elif thing == "reboot":
+            print("Restart Raspberry Pi!")
+            result = subprocess.run(['sudo','nohup','reboot','-h','now'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            return jsonify({'status': 'OK','msg': 'Raspberry Pi is restarting'})
+
+        # Shut down the Raspberry Pi
         elif thing == "shutdown":
-            print("Shutting down Raspberry Pi!", value)
+            print("Shutting down Raspberry Pi!")
             result = subprocess.run(['sudo','nohup','shutdown','-h','now'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             return jsonify({'status': 'OK','msg': 'Raspberry Pi is shutting down'})
 
@@ -181,7 +199,7 @@ def audio():
 
 
 ##
-# Send an Animation command to the Arduino
+# Send an Animation command to servo board(s)
 #
 @app.route('/animate', methods=['POST'])
 def animate():
@@ -195,7 +213,7 @@ def animate():
 
 
 ##
-# Send a Servo Control command to the Arduino
+# Send a Servo Control command to servo board(s)
 #
 @app.route('/servoControl', methods=['POST'])
 def servoControl():
