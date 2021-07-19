@@ -10,6 +10,8 @@
 from flask import Flask, request, session, redirect, url_for, jsonify, render_template
 from adafruit_motorkit import MotorKit
 from adafruit_servokit import ServoKit
+
+
 import os
 import pygame		# for sound
 import subprocess 	# for shell commands
@@ -107,7 +109,7 @@ def motor():
             motorkit.motor1.throttle = float(forwardBackwardThrottle)
             motorkit.motor1.throttle = float(leftRightMotorThrottle)
 
-        #  ForwardMotion
+        #  Forward/Backward Motion
         else:
             motorkit.motor1.throttle = float(forwardBackwardThrottle)        
             motorkit.motor2.throttle = float(forwardBackwardThrottle)
