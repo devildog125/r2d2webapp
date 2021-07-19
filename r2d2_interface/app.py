@@ -19,10 +19,7 @@ import time
 
 app = Flask(__name__)
 
-
-##### VARIABLES WHICH YOU CAN MODIFY #####
-soundFolder = "/home/pi/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
-##########################################
+soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
 # Static Motor and Servo Variables
 servokit = ServoKit(channels=8)
@@ -94,17 +91,27 @@ def motor():
     stickX =  request.form.get('stickX')
     stickY =  request.form.get('stickY')
     if stickX is not None and stickY is not None:
-        leftRightMotorFloat = float(stickX)
-        forwardBackwardMotorFloat = float(stickY)
-        leftRightMotorThrottle = "{:.2f}".format(leftRightMotorFloat)
-        forwardBackwardThrottle = "{:.2f}".format(forwardBackwardMotorFloat)
+        xMotorFloat = float(stickX)
+        yMotorFloat = float(stickY)
+        leftRightMotorThrottle = "{:.2f}".format(xMotorFloat)
+        forwardBackwardThrottle = "{:.2f}".format(yMotorFloat)
         print("Motors:", leftRightMotorThrottle, ",", forwardBackwardThrottle)
 
-        #  ForwardMotion
-        motorkit.motor1.throttle = float(forwardBackwardThrottle)        
-        motorkit.motor2.throttle = float(forwardBackwardThrottle)
+        # steer to the left?
+        if xMotorFloat < yMotorFloat: 
+            motorkit.motor1.throttle = float(leftRightMotorThrottle)
+            motorkit.motor2.throttle = float(forwardBackwardThrottle)
 
-        
+        # steer to the right?
+        elif xMotorFloat > yMotorFloat: 
+            motorkit.motor1.throttle = float(forwardBackwardThrottle)
+            motorkit.motor1.throttle = float(leftRightMotorThrottle)
+
+        #  ForwardMotion
+        else:
+            motorkit.motor1.throttle = float(forwardBackwardThrottle)        
+            motorkit.motor2.throttle = float(forwardBackwardThrottle)
+
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
     else:
