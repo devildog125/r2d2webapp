@@ -1,7 +1,6 @@
 /* 
  * Robot Webinterface - Main Script
- * Simon B., https://wired.chillibasket.com
- * V1.4, 16th February 2020
+ * V1.0, 18th July 2021
  */
 
 
@@ -34,6 +33,11 @@ function sendSettings(type, value) {
 			return 0;
 		}
 	}
+	if (type=="reboot"){
+		if (!confirm("Are you sure you want to reboot?")){
+			return 0;
+		}
+	}
 	
 	//alert(type + ", " + value);
 	// Send data to python app, so that it can be passed on
@@ -51,28 +55,13 @@ function sendSettings(type, value) {
 			// Else if response is all good
 			} else {
 				showAlert(0, 'Success!', 'Settings have been updated.', 1);
-				
-				// If setting related to the camera stream, show/hide the video stream
-				if(typeof data.streamer !== "undefined"){
-						if(data.streamer == "Active"){
-							$('#conn-streamer').html('End Stream');
-							$('#conn-streamer').removeClass('btn-outline-info');
-							$('#conn-streamer').addClass('btn-outline-danger');
-							$("#stream").attr("src","http:/" + "/" + window.location.hostname + ":8081/?action=stream");
-						} else if(data.streamer == "Offline"){
-							$('#conn-streamer').html('Reactivate');
-							$('#conn-streamer').addClass('btn-outline-info');
-							$('#conn-streamer').removeClass('btn-outline-danger');
-							$("#stream").attr("src","/static/streamimage.jpg");
-						}
-				}
 				return 1;
 			}
 		},
 		error: function(error) {
 			// If no response was recevied from the python backend, show an "unknown" error
 			if (type == "shutdown") {
-				showAlert(0, 'Raspberry Pi is now shutting down!', 'The WALL-E web-interface is no longer active.', 1);
+				showAlert(0, 'Raspberry Pi is now shutting down!', 'The R2D2 web-interface is no longer active.', 1);
 			} else {
 				showAlert(1, 'Unknown Error!', 'Unable to update settings.', 1);
 			}
@@ -80,133 +69,6 @@ function sendSettings(type, value) {
 		}
 	});
 }
-
-
-/*
- * Update Arduino Connection
- */
-function arduinoConnect(item) {
-	
-	// Only run this if the button is not disabled
-	if (!item.classList.contains('disabled')) {
-		$.ajax({
-			url: "/arduinoConnect",
-			type: "POST",
-			data: {"action" : "reconnect", "port": $('#port-select option:selected').val()},
-			dataType: "json",
-			success: function(data){
-				// If a response is received from the python backend, but it contains an error
-				if(data.status == "Error"){
-					updateSerialList(false);
-					showAlert(1, 'Error!', data.msg, 1);
-					$('#conn-arduino').html('Reconnect');
-					$('#conn-arduino').addClass('btn-outline-info');
-					$('#conn-arduino').removeClass('btn-outline-danger');
-					$('#ardu-area').attr('data-original-title','Disconnected');
-					$('#ardu-area').addClass('bg-danger');
-					$('#ardu-area').removeClass('bg-success');
-					clearInterval(arduinoTimer);
-					return 0;
-				
-				// Else if response is all good
-				} else {
-					
-					console.log("Arduino connection update: " + data.arduino);
-					
-					// If the setting related to Arduino connection, update the button						
-					if(data.arduino == "Connected"){
-						$('#conn-arduino').html('Disconnect');
-						$('#conn-arduino').removeClass('btn-outline-info');
-						$('#conn-arduino').addClass('btn-outline-danger');
-						$('#ardu-area').attr('data-original-title','Connected');
-						$('#ardu-area').removeClass('bg-danger');
-						$('#ardu-area').addClass('bg-success');
-						showAlert(0, 'Success!', 'Arduino now connected.', 1);
-						arduinoTimer = setInterval(checkArduinoStatus, 10000);
-						checkArduinoStatus();
-					} else if(data.arduino == "Disconnected"){
-						$('#conn-arduino').html('Reconnect');
-						$('#conn-arduino').addClass('btn-outline-info');
-						$('#conn-arduino').removeClass('btn-outline-danger');
-						$('#ardu-area').attr('data-original-title','Disconnected');
-						$('#ardu-area').addClass('bg-danger');
-						$('#ardu-area').removeClass('bg-success');
-						$('#batt-area').addClass('d-none');
-						showAlert(0, 'Success!', 'Arduino now disconnected.', 1);
-						clearInterval(arduinoTimer);
-					}
-					return 1;
-				}
-			},
-			error: function(error) {
-				// If no response was recevied from the python backend, show an "unknown" error
-				updateSerialList(false);
-				showAlert(1, 'Unknown Error!', 'Unable to update connection settings.', 1);
-				return 0;
-			}
-		});
-	}
-}
-
-
-/*
- * Update list of serial ports
- */
-function updateSerialList(alertActive) {
-	
-	$.ajax({
-		url: "/arduinoConnect",
-		type: "POST",
-		data: {"action" : "updateList"},
-		dataType: "json",
-		success: function(data){
-			// If a response is received from the python backend, but it contains an error
-			if(data.status == "Error"){
-				if (alertActive) showAlert(1, 'Error!', data.msg, 1);
-				return 0;
-			
-			// Else if response is all good
-			} else {
-				if (alertActive) showAlert(0, 'Success!', 'Updated serial port list.', 1);
-				
-				var portList = data.ports;
-				var listLength = portList.length;
-				$('#port-select').empty();
-				
-				if (listLength > 0) {
-					for (var i = 0; i < listLength; i++) {
-						if (data.portSelect == i) {
-							$('#port-select').append('<option value="' + i + '" selected>' + portList[i] + '</option>');
-						} else {
-							$('#port-select').append('<option value="' + i + '">' + portList[i] + '</option>');
-						}
-					}
-					
-					if ($('#conn-arduino').hasClass('disabled')) {
-						$('#conn-arduino').removeClass('disabled');
-						$('#conn-arduino').removeClass('btn-outline-secondary');
-						$('#conn-arduino').addClass('btn-outline-info');
-					}
-				} else {
-					if(data.arduino == "Disconnected"){
-						$('#conn-arduino').addClass('disabled');
-						$('#conn-arduino').addClass('btn-outline-secondary');
-						$('#conn-arduino').removeClass('btn-outline-info');
-					}
-					$('#port-select').append('<option disabled selected>No devices found!</option>');
-				}
-				
-				return 1;
-			}
-		},
-		error: function(error) {
-			// If no response was recevied from the python backend, show an "unknown" error
-			if (alertActive) showAlert(1, 'Unknown Error!', 'Unable to update connection settings.', 1);
-			return 0;
-		}
-	});
-}
-
 
 /*
  * Play a servo motor animation
@@ -449,85 +311,6 @@ function servoInputs(enabled) {
 	}
 }
 
-
-/*
- * This function checks if the Arduino has sent any messages to the 
- * Raspberry Pi; for example, the current battery level
- */
-function checkArduinoStatus() {
-	$.ajax({
-		url: "/arduinoStatus",
-		type: "POST",
-		data: {"type": "battery"},
-		dataType: "json",
-		success: function(data){
-			if(data.status != "Error"){
-				var batteryLevel = parseInt(data.battery);
-				if (batteryLevel != -999) {
-					if (batteryLevel < 0) batteryLevel = 0;
-					$('#batt-area').removeClass('d-none');
-					$('#batt-text').html(batteryLevel + '%');
-					if (batteryLevel > 65 && !$('#batt-icon').hasClass('fa-battery-full')) {
-						$('#batt-icon').removeClass('fa-battery-quarter');
-						$('#batt-icon').removeClass('fa-battery-half');
-						$('#batt-icon').addClass('fa-battery-full');
-						$('#batt-area').removeClass('bg-danger');
-						$('#batt-area').removeClass('bg-warning');
-						$('#batt-area').addClass('bg-success');
-					} else if (batteryLevel > 35 && batteryLevel <= 65  && !$('#batt-icon').hasClass('fa-battery-half')) {
-						$('#batt-icon').removeClass('fa-battery-quarter');
-						$('#batt-icon').addClass('fa-battery-half');
-						$('#batt-icon').removeClass('fa-battery-full');
-						$('#batt-area').removeClass('bg-danger');
-						$('#batt-area').addClass('bg-warning');
-						$('#batt-area').removeClass('bg-success');
-					} if (batteryLevel <= 35 && !$('#batt-icon').hasClass('fa-battery-quarter')) {
-						$('#batt-icon').addClass('fa-battery-quarter');
-						$('#batt-icon').removeClass('fa-battery-half');
-						$('#batt-icon').removeClass('fa-battery-full');
-						$('#batt-area').addClass('bg-danger');
-						$('#batt-area').removeClass('bg-warning');
-						$('#batt-area').removeClass('bg-success');
-					}
-				} else {
-					$('#batt-area').addClass('d-none');
-				}
-				return true;
-			} else {
-				showAlert(1, 'Error!', data.msg, 1);
-			}
-		}
-	});
-}
-
-
-/*
- * This function displays an alert message at the bottom of the screen
- */
-function showAlert(error, bold, content, fade) {
-	if (fade == 1) $('#alert-space').fadeOut(100);
-	var alertType = 'alert-success';
-	if (error == 1) alertType = 'alert-danger';
-	$('#alert-space').html('<div class="alert alert-dismissible ' + alertType + ' set-alert">\
-								<button type="button" class="close" data-dismiss="alert">&times;</button>\
-								<strong>' + bold + '</strong> ' + content + ' \
-							</div>');			
-	if (fade == 1) $('#alert-space').fadeIn(150);
-	if (content == "Arduino not connected" && $('#conn-arduino').hasClass('btn-outline-danger')) {
-		updateSerialList(false);
-		$('#conn-arduino').html('Reconnect');
-		$('#conn-arduino').addClass('btn-outline-info');
-		$('#conn-arduino').removeClass('btn-outline-danger');
-		$('#ardu-area').attr('data-original-title','Disconnected');
-		$('#ardu-area').addClass('bg-danger');
-		$('#ardu-area').removeClass('bg-success');
-		$('#batt-area').addClass('d-none');
-		clearInterval(arduinoTimer);
-		console.log("Cleared arduino timer");
-	}
-}
-
-
 /*
  * Gamepad Functions go here!
  */
@@ -577,96 +360,6 @@ function updateInfo(e) {
 	$('#cont-area').addClass('bg-success');
 	//$('#joystick').addClass('d-none');
 	gamepadTimer = setInterval(sendMovementValues, 100); 
-}
-
-// When a controller button is pressed
-function pressButton(e) {
-	const { buttonName } = e.detail;
-	
-	// A or Cross button - Sad eye expression
-	if (buttonName === 'button_0') {
-		servoPresets(document.getElementById('eyes-sad'),'eyes-sad','i');
-	
-	// B or Circle button - Right head tilt
-	} else if (buttonName === 'button_1') {
-		servoPresets(document.getElementById('eyes-right'),'eyes-right','l');
-	
-	// X or Square button - Left head tilt
-	} else if (buttonName === 'button_2') {
-		servoPresets(document.getElementById('eyes-left'),'eyes-left','j');
-	
-	// Y or Triangle button - Neutral eye expression
-	} else if (buttonName === 'button_3') {
-		servoPresets(document.getElementById('eyes-neutral'),'eyes-neutral','k');
-	
-	// Left Trigger button - Lower left arm
-	} else if (buttonName === 'button_6') {
-		moveArms[0] = -1;
-	
-	// Left Bumper button - Raise left arm
-	} else if (buttonName === 'button_4') {
-		moveArms[0] = 1;
-		
-	// Right Trigger button - Lower right arm
-	} else if (buttonName === 'button_7') {
-		moveArms[2] = -1;
-		
-	// Right Bumper button - Raise right arm
-	} else if (buttonName === 'button_5') {
-		moveArms[2] = 1;
-	
-	// Press down on left stick - Move arms back to neutral position
-	} else if (buttonName === 'button_10') {
-		moveArms[0] = 0;
-		moveArms[1] = 50;
-		moveArms[2] = 0;
-		moveArms[3] = 50;
-		servoPresets(document.getElementById('arms-neutral'),'arms-neutral','n');
-	
-	// Press down on right stick - Move head back to neutral position
-	} else if (buttonName === 'button_11') {
-		moveHead[0] = 50;
-		servoControl(document.getElementById('head-rotation'),'G',50);
-		moveHead[1] = 125;
-		servoPresets(document.getElementById('head-neutral'),'head-neutral','g');
-		
-	// Back or Share button - Turn on/off automatic servo mode
-	} else if (buttonName === 'button_8') {
-		if ($('#auto-anime').parent().hasClass('active')) {
-			$('#auto-anime').parent().removeClass('active');
-			$('#manu-anime').parent().addClass('active');
-			sendSettings('animeMode',0);
-			servoInputs(1);
-		} else if ($('#manu-anime').parent().hasClass('active')) {
-			$('#auto-anime').parent().addClass('active');
-			$('#manu-anime').parent().removeClass('active');
-			sendSettings('animeMode',1);
-			servoInputs(0);
-		}
-	
-	// Left d-pad button - Play random sound
-	} else if (buttonName === 'button_14') {
-		var fileNames = [];
-		var fileLengths = [];
-		$("#audio-accordion div div a").each(function() { 
-			fileNames.push($(this).attr('file-name'));
-			fileLengths.push($(this).attr('file-length'));
-		});
-		var randomNumber = Math.floor((Math.random() * fileNames.length));
-		playAudio(fileNames[randomNumber],fileLengths[randomNumber]);
-		
-	// Right d-pad button - Play random servo animation
-	} else if (buttonName === 'button_15') {
-		var fileNames = [];
-		var fileLengths = [];
-		$("#anime-accordion div div a").each(function() { 
-			fileNames.push($(this).attr('file-name'));
-			fileLengths.push($(this).attr('file-length'));
-		});
-		var randomNumber = Math.floor((Math.random() * fileNames.length));
-		anime(fileNames[randomNumber],fileLengths[randomNumber]);
-		console.log(randomNumber);
-	}
 }
 
 // When a controller axis movement is detected

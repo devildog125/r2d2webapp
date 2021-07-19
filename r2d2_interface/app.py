@@ -94,16 +94,17 @@ def motor():
     stickX =  request.form.get('stickX')
     stickY =  request.form.get('stickY')
     if stickX is not None and stickY is not None:
-        leftMotorFloat = float(stickX)
-        rightMotorFloat = float(stickY)
-        leftMotorThrottle = "{:.2f}".format(leftMotorFloat)
-        rightMotorThrottle = "{:.2f}".format(rightMotorFloat)
-        print("Motors:", leftMotorFloat, ",", rightMotorThrottle)
+        leftRightMotorFloat = float(stickX)
+        forwardBackwardMotorFloat = float(stickY)
+        leftRightMotorThrottle = "{:.2f}".format(leftRightMotorFloat)
+        forwardBackwardThrottle = "{:.2f}".format(forwardBackwardMotorFloat)
+        print("Motors:", leftRightMotorThrottle, ",", forwardBackwardThrottle)
 
-        if leftMotorFloat > 0.04 and rightMotorFloat > 0.0:
-            motorkit.motor1.throttle = rightMotorFloat
-            #  motorkit.motor2.throttle = rightMotorFloat
+        #  ForwardMotion
+        motorkit.motor1.throttle = float(forwardBackwardThrottle)        
+        motorkit.motor2.throttle = float(forwardBackwardThrottle)
 
+        
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
     else:
@@ -150,12 +151,6 @@ def settings():
         # Shut down the Raspberry Pi
         elif thing == "reboot":
             print("Restarting Raspberry Pi!", value)
-            result = subprocess.run(['sudo','nohup','reboot','-h','now'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-            return jsonify({'status': 'OK','msg': 'Raspberry Pi is restarting'})
-
-        # Shut down the Raspberry Pi
-        elif thing == "reboot":
-            print("Restart Raspberry Pi!")
             result = subprocess.run(['sudo','nohup','reboot','-h','now'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             return jsonify({'status': 'OK','msg': 'Raspberry Pi is restarting'})
 
@@ -226,8 +221,6 @@ def servoControl():
         return jsonify({'status': 'OK' })
     else:
         return jsonify({'status': 'Error','msg':'Unable to read POST data'})
-
-
 
 ##
 # Program start code, which initialises the web-interface
