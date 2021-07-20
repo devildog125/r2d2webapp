@@ -109,14 +109,11 @@ def motor():
         elif xMotorFloat >= yMotorFloat: 
             motorkit.motor1.throttle = float(forwardBackwardThrottle)
             motorkit.motor2.throttle = float(leftRightMotorThrottle)
-
+            
+        #  Forward/Backward Motion
         elif yMotorFloat == 1.0 and xMotorFloat <= .04:
             motorkit.motor1.throttle = float(forwardBackwardThrottle)        
             motorkit.motor2.throttle = float(forwardBackwardThrottle)
-        #  Forward/Backward Motion
-        #else:
-            #  motorkit.motor1.throttle = float(forwardBackwardThrottle)        
-            #  motorkit.motor2.throttle = float(forwardBackwardThrottle)
 
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
