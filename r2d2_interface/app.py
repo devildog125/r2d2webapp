@@ -100,20 +100,21 @@ def motor():
         forwardBackwardThrottle = "{:.2f}".format(yMotorFloat)
         print("Motors:", leftRightMotorThrottle, ",", forwardBackwardThrottle)
 
-        # steer to the left?
-        if xMotorFloat <= yMotorFloat: 
-            motorkit.motor1.throttle = float(leftRightMotorThrottle)
-            motorkit.motor2.throttle = float(forwardBackwardThrottle)
+        if yMotorFloat >.90:
+            if xMotorFloat <= .10:
+                motorkit.motor1.throttle = float(forwardBackwardThrottle)
+                motorkit.motor2.throttle = float(forwardBackwardThrottle)
 
-        # steer to the right?
-        elif xMotorFloat >= yMotorFloat: 
-            motorkit.motor1.throttle = float(forwardBackwardThrottle)
-            motorkit.motor2.throttle = float(leftRightMotorThrottle)
 
-        #  Forward/Backward Motion
-        elif yMotorFloat == 1.0 or yMotorFloat == -1.0 and xMotorFloat <= .04:
-            motorkit.motor1.throttle = float(forwardBackwardThrottle)        
-            motorkit.motor2.throttle = float(forwardBackwardThrottle)
+        if yMotorFloat < -.90:        
+            if xMotorFloat <= -.10:
+                motorkit.motor1.throttle = float(forwardBackwardThrottle)
+                motorkit.motor2.throttle = float(forwardBackwardThrottle)   
+
+        else:
+            motorkit.motor1.throttle = 0.0
+            motorkit.motor2.throttle = 0.0
+
 
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
