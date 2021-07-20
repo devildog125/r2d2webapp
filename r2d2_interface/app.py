@@ -23,12 +23,6 @@ app = Flask(__name__)
 
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
-# Static Motor and Servo Variables
-
-
-
-
-
 # Start sound mixer
 pygame.mixer.init()
 
