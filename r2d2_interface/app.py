@@ -110,7 +110,7 @@ def motor():
             motorkit.motor1.throttle = float(forwardBackwardThrottle)
             motorkit.motor2.throttle = float(leftRightMotorThrottle)
 
-        elif yMotorFloat == 100 and xMotorFloat <= .04:
+        elif yMotorFloat == 1.0 and xMotorFloat <= .04:
             motorkit.motor1.throttle = float(forwardBackwardThrottle)        
             motorkit.motor2.throttle = float(forwardBackwardThrottle)
         #  Forward/Backward Motion
