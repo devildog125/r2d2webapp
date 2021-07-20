@@ -24,7 +24,7 @@ app = Flask(__name__)
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
 # Static Motor and Servo Variables
-servokit = ServoKit(channels=8)
+# servokit = ServoKit(channels=8)
 motorkit = MotorKit()
 
 # Start sound mixer
@@ -100,19 +100,22 @@ def motor():
         print("Motors:", leftRightMotorThrottle, ",", forwardBackwardThrottle)
 
         # steer to the left?
-        if xMotorFloat < yMotorFloat: 
+        if xMotorFloat <= yMotorFloat: 
             motorkit.motor1.throttle = float(leftRightMotorThrottle)
             motorkit.motor2.throttle = float(forwardBackwardThrottle)
 
         # steer to the right?
-        elif xMotorFloat > yMotorFloat: 
+        elif xMotorFloat >= yMotorFloat: 
             motorkit.motor1.throttle = float(forwardBackwardThrottle)
-            motorkit.motor1.throttle = float(leftRightMotorThrottle)
+            motorkit.motor2.throttle = float(leftRightMotorThrottle)
 
-        #  Forward/Backward Motion
-        else:
+        elif yMotorFloat == 100 and xMotorFloat <= .04:
             motorkit.motor1.throttle = float(forwardBackwardThrottle)        
             motorkit.motor2.throttle = float(forwardBackwardThrottle)
+        #  Forward/Backward Motion
+        #else:
+            #  motorkit.motor1.throttle = float(forwardBackwardThrottle)        
+            #  motorkit.motor2.throttle = float(forwardBackwardThrottle)
 
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
