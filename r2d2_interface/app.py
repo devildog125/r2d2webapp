@@ -24,8 +24,10 @@ app = Flask(__name__)
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
 # Static Motor and Servo Variables
-# servokit = ServoKit(channels=8)
-motorkit = MotorKit()
+
+
+
+
 
 # Start sound mixer
 pygame.mixer.init()
@@ -89,7 +91,12 @@ def login():
 #
 @app.route('/motor', methods=['POST'])
 def motor():
-    
+    try:
+        motorkit = MotorKit()
+    except:
+        print("Unable to connect Motorboard!")
+        jsonify({"status": 'Error', 'msg': "Unable to connect to Motorboard!"})
+
     stickX =  request.form.get('stickX')
     stickY =  request.form.get('stickY')
     if stickX is not None and stickY is not None:
@@ -129,7 +136,18 @@ def motor():
 #
 @app.route('/settings', methods=['POST'])
 def settings():
-    
+    try:
+        servokit = ServoKit(channels=8)
+    except:
+        print("Unable to connect to servo kit")
+        jsonify({'status': 'Error','msg':'Unable to connect to servo board'})
+
+    try:
+        motorkit = MotorKit()
+    except:
+        print("Unable to connect to motorboard")
+        jsonify({'status': 'Error', 'msg': 'Unable to connect to servo board!'})
+        
     thing = request.form.get('type');
     value = request.form.get('value');
 
@@ -224,6 +242,12 @@ def animate():
 #
 @app.route('/servoControl', methods=['POST'])
 def servoControl():
+    try:
+        servokit = ServoKit(channels=8)
+    except:
+        print("Unable to connect to servo kit")
+        jsonify({'status': 'Error','msg':'Unable to connect to servo board'})
+
     servo = request.form.get('servo');
     value = request.form.get('value');
     if servo is not None and value is not None:
