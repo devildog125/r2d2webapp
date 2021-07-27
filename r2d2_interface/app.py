@@ -8,9 +8,7 @@
 #############################################
 
 from flask import Flask, request, session, redirect, url_for, jsonify, render_template
-from adafruit_motorkit import MotorKit
-from adafruit_servokit import ServoKit
-
+from adafruit_crickit import crickit
 
 import os
 import pygame		# for sound
@@ -21,7 +19,13 @@ import time
 
 app = Flask(__name__)
 
+# Variables 
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
+
+
+
+# Static Motor and Servo Variables
+
 
 # Start sound mixer
 pygame.mixer.init()
@@ -30,8 +34,10 @@ pygame.mixer.init()
 exitFlag = 0
 volume = 5
 batteryLevel = -999
-
-
+upright = 180
+up = 180
+middleLegDwn = 40
+mainlegsSlant = 0 
 #############################################
 # Flask Pages and Functions
 #############################################
@@ -78,19 +84,15 @@ def index():
 #
 @app.route('/login')
 def login():
-        return redirect(url_for('index'))
+
+    return redirect(url_for('index'))
 
 ##
 # Control the main movement motors
 #
 @app.route('/motor', methods=['POST'])
 def motor():
-    try:
-        motorkit = MotorKit()
-    except:
-        print("Unable to connect Motorboard!")
-        jsonify({"status": 'Error', 'msg': "Unable to connect to Motorboard!"})
-
+    
     stickX =  request.form.get('stickX')
     stickY =  request.form.get('stickY')
     if stickX is not None and stickY is not None:
@@ -100,21 +102,16 @@ def motor():
         forwardBackwardThrottle = "{:.2f}".format(yMotorFloat)
         print("Motors:", leftRightMotorThrottle, ",", forwardBackwardThrottle)
 
-        if yMotorFloat >.90:
-            if xMotorFloat <= .10:
-                motorkit.motor1.throttle = float(forwardBackwardThrottle)
-                motorkit.motor2.throttle = float(forwardBackwardThrottle)
+        # steer to the left?
 
 
-        if yMotorFloat < -.90:        
-            if xMotorFloat <= -.10:
-                motorkit.motor1.throttle = float(forwardBackwardThrottle)
-                motorkit.motor2.throttle = float(forwardBackwardThrottle)   
 
-        else:
-            motorkit.motor1.throttle = 0.0
-            motorkit.motor2.throttle = 0.0
+        # steer to the right?
 
+
+
+        #  Forward/Backward Motion
+  
 
         #  TODO: add motor functionality here
         return jsonify({'status': 'OK' })
@@ -128,18 +125,7 @@ def motor():
 #
 @app.route('/settings', methods=['POST'])
 def settings():
-    try:
-        servokit = ServoKit(channels=8)
-    except:
-        print("Unable to connect to servo kit")
-        jsonify({'status': 'Error','msg':'Unable to connect to servo board'})
-
-    try:
-        motorkit = MotorKit()
-    except:
-        print("Unable to connect to motorboard")
-        jsonify({'status': 'Error', 'msg': 'Unable to connect to servo board!'})
-        
+    
     thing = request.form.get('type');
     value = request.form.get('value');
 
@@ -223,6 +209,15 @@ def animate():
     clip = request.form.get('clip')
     if clip is not None:
         print("Animate:", clip)
+        if clip == "0":
+            # Put Droid in 2 leg mode
+            crickit.servo_2.angle = up
+            time.sleep(.5)
+            crickit.servo_1.angle = up
+        elif clip == "2":
+            crickit.servo_1.angle = middleLegDwn
+            time.sleep(.5)
+            crickit.servo_2.angle = mainlegsSlant  
         #  Todo Add Animation servo settings here
         return jsonify({'status': 'OK' })
     else:
@@ -234,12 +229,6 @@ def animate():
 #
 @app.route('/servoControl', methods=['POST'])
 def servoControl():
-    try:
-        servokit = ServoKit(channels=8)
-    except:
-        print("Unable to connect to servo kit")
-        jsonify({'status': 'Error','msg':'Unable to connect to servo board'})
-
     servo = request.form.get('servo');
     value = request.form.get('value');
     if servo is not None and value is not None:
@@ -256,3 +245,5 @@ def servoControl():
 if __name__ == '__main__':
     #app.run()
     app.run(debug=False, host='0.0.0.0')
+
+
