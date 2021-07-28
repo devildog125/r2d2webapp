@@ -18,7 +18,7 @@ import time
 
 
 app = Flask(__name__)
-kit = ServoKit(channels=8)
+bottomservo = ServoKit(channels=8)
 # Variables 
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
@@ -213,15 +213,15 @@ def animate():
         print("Animate:", clip)
         if clip == "0":
             # Put Droid in 2 leg mode
-            kit.servo[twolegs].angle = upright
+            bottomservo.servo[twolegs].angle = upright
             time.sleep(1)
-            kit.servo[middleleg].angle = 180
+            bottomservo.servo[middleleg].angle = 180
             
         elif clip == "2":
             # Put Droid in 3 leg mode
-            kit.servo[middleleg].angle = middlelegslant 
+            bottomservo.servo[middleleg].angle = middlelegslant 
             time.sleep(1)
-            kit.servo[twolegs].angle = twolegslant
+            bottomservo.servo[twolegs].angle = twolegslant
             
 
         #  Todo Add Animation servo settings here
