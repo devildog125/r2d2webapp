@@ -8,7 +8,7 @@
 #############################################
 
 from flask import Flask, request, session, redirect, url_for, jsonify, render_template
-from adafruit_crickit import crickit
+from adafruit_servokit import ServoKit
 
 import os
 import pygame		# for sound
@@ -18,7 +18,7 @@ import time
 
 
 app = Flask(__name__)
-
+kit = ServoKit(channels=8)
 # Variables 
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
@@ -34,10 +34,13 @@ pygame.mixer.init()
 exitFlag = 0
 volume = 5
 batteryLevel = -999
+twolegs = 0
+middleleg = 1
+bottomarm = 2
+toparm = 3
 upright = 180
-up = 180
-middleLegDwn = 40
-mainlegsSlant = 0 
+middlelegslant = 45
+twolegslant = 0
 #############################################
 # Flask Pages and Functions
 #############################################
@@ -176,7 +179,6 @@ def settings():
     else:
         return jsonify({'status': 'Error','msg': 'Unable to read POST data'})
 
-
 ##
 # Play an Audio clip on the Raspberry Pi
 #
@@ -211,13 +213,17 @@ def animate():
         print("Animate:", clip)
         if clip == "0":
             # Put Droid in 2 leg mode
-            crickit.servo_2.angle = up
-            time.sleep(.5)
-            crickit.servo_1.angle = up
+            kit.servo[twolegs].angle = upright
+            time.sleep(1)
+            kit.servo[middleleg].angle = 180
+            
         elif clip == "2":
-            crickit.servo_1.angle = middleLegDwn
-            time.sleep(.5)
-            crickit.servo_2.angle = mainlegsSlant  
+            # Put Droid in 3 leg mode
+            kit.servo[middleleg].angle = middlelegslant 
+            time.sleep(1)
+            kit.servo[twolegs].angle = twolegslant
+            
+
         #  Todo Add Animation servo settings here
         return jsonify({'status': 'OK' })
     else:
