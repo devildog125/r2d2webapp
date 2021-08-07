@@ -9,7 +9,7 @@
 
 from flask import Flask, request, session, redirect, url_for, jsonify, render_template
 from adafruit_servokit import ServoKit
-
+from adafruit_motorkit import MotorKit
 import os
 import pygame		# for sound
 import subprocess 	# for shell commands
@@ -19,6 +19,7 @@ import time
 
 app = Flask(__name__)
 bottomservo = ServoKit(channels=8)
+motors = MotorKit()
 # Variables 
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
