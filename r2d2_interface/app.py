@@ -30,7 +30,7 @@ soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of
 # Start sound mixer
 pygame.mixer.init()
 
-# Set up runtime variables and queues
+# Set up runtime variables
 exitFlag = 0
 volume = 5
 batteryLevel = -999
@@ -41,6 +41,7 @@ toparm = 3
 upright = 180
 middlelegslant = 45
 twolegslant = 0
+bottomservo.servo[twolegs].set_pulse_width_range(750.2250)
 #############################################
 # Flask Pages and Functions
 #############################################
