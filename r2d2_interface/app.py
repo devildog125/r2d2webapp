@@ -195,7 +195,7 @@ def audio():
         clip = soundFolder + clip + ".ogg"
         print("Play music clip:", clip)
         pygame.mixer.music.load(clip)
-        pygame.mixer.music.set_volume(volume/10.0)
+        # pygame.mixer.music.set_volume(volume/10.0)
         #start_time = time.time()
         pygame.mixer.music.play()
         #while pygame.mixer.music.get_busy() == True:
