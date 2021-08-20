@@ -124,7 +124,6 @@ def motor():
         print("Error: unable to read POST data from motor command")
         return jsonify({'status': 'Error','msg':'Unable to read POST data'})
 
-
 ##
 # Update Settings
 #
@@ -154,11 +153,14 @@ def settings():
         # Sound mode currently doesn't do anything
         elif thing == "soundMode":
             print("Sound Mode:", value)
+
         #  TODO: add Sound Mode On/Off setting functionality
 
         # Change the sound effects volume
         elif thing == "volume":
-            print("Value Model:")
+            print("Volume Setting: ", value)
+            result = subprocess.run(['amixer', 'set', 'PCM', value])
+            return jsonify({'status': 'OK', 'msg': 'Altering Volume'})
         #  TODO: Add Volume settings
 
         # Shut down the Raspberry Pi
