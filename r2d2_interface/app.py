@@ -81,7 +81,21 @@ def index():
             # Add the details to the list
             files.append((audiogroup,audiofiles,audionames,audiotimes))
 
+        startupAnimations()
+
     return render_template('index.html',sounds=files)
+
+def startupAnimations():
+        # Play StartUp sound
+        clip = soundFolder + "sound_Startup_3000.ogg"
+        pygame.mixer.music.load(clip)
+        pygame.mixer.music.play()
+        # Put Droid in 2 leg mode
+        bottomservo.servo[twolegs].angle = upright
+        time.sleep(1)
+        bottomservo.servo[middleleg].angle = 180
+
+
 
 
 ##
@@ -220,7 +234,8 @@ def animate():
             bottomservo.servo[twolegs].angle = upright
             time.sleep(1)
             bottomservo.servo[middleleg].angle = 180
-            
+        if clip == "1":
+            startupAnimations()
         elif clip == "2":
             # Put Droid in 3 leg mode
             bottomservo.servo[middleleg].angle = middlelegslant 
