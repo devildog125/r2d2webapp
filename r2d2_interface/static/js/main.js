@@ -149,7 +149,6 @@ function playAudio(clip, time) {
 	});
 }
 
-
 /*
  * Send a manual servo control command
  */
@@ -181,6 +180,36 @@ function servoControl(item, servo, value) {
 	});
 }
 
+function headControl(value){
+	$.ajax({
+		url: "/headControl",
+		type: "POST",
+		data: {"clip": value},
+		dataType: "json",
+		success: function(data){
+			// If a response is received from the python backend, but it contains an error
+			if(data.status == "Error"){
+				$('#anime-progress').addClass('bg-danger');
+				$('#anime-progress').css("width", "0%").animate({width: 100+"%"}, 500);
+				showAlert(1, 'Error!', data.msg, 1);
+				return false;
+				
+			// Otherwise set the progress bar to show the animation progress
+			} else {
+				$('#anime-progress').removeClass('bg-danger');
+				$('#anime-progress').css("width", "0%").animate({width: 100+"%"}, time*1000);
+				return true;
+			}
+		},
+		error: function(error) {
+			// If no response was recevied from the python backend, show an "unknown" error
+			$('#anime-progress').addClass('bg-danger');
+			$('#anime-progress').css("width", "0%").animate({width: 100+"%"}, 500);
+			showAlert(1, 'Unknown Error!', 'Unable to run the animation.', 1);
+			return false;
+		}
+	});
+}
 
 /*
  * Send a preset servo control command

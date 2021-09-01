@@ -23,8 +23,6 @@ motors = MotorKit()
 # Variables 
 soundFolder = "/home/pi/r2d2webapp/r2d2_interface/static/sounds/"  # Location of the folder containing all audio files
 
-
-
 # Static Motor and Servo Variables
 
 
@@ -89,14 +87,11 @@ def startupAnimations():
         # Play StartUp sound
         clip = soundFolder + "sound_Startup_3000.ogg"
         pygame.mixer.music.load(clip)
-        pygame.mixer.music.play()
+        # pygame.mixer.music.play() # commented out due to annoying a 100 times when debugging
         # Put Droid in 2 leg mode
         bottomservo.servo[twolegs].angle = upright
         time.sleep(1)
         bottomservo.servo[middleleg].angle = 180
-
-
-
 
 ##
 # Show the Login page
@@ -137,6 +132,13 @@ def motor():
     else:
         print("Error: unable to read POST data from motor command")
         return jsonify({'status': 'Error','msg':'Unable to read POST data'})
+
+##
+# Control Head Movement motor
+# 
+@app.route('/headControl', methods=['POST'])
+def headmotor():
+    
 
 ##
 # Update Settings
@@ -260,6 +262,7 @@ def servoControl():
         print("servo:", servo)
         print("value:", value)
         #  Todo Add Animation servo settings here
+
         return jsonify({'status': 'OK' })
     else:
         return jsonify({'status': 'Error','msg':'Unable to read POST data'})
